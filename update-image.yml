@@ -1,0 +1,35 @@
+trigger:
+ branches:
+  include:
+    - main
+ paths:
+   include:
+     - 'new_scripts/*.ps1'
+
+pool:
+  vmImage: ubuntu-latest
+steps:
+- checkout: self
+  persistCredentials: true
+- task: AzureCLI@2
+  inputs:
+    azureSubscription: 'AzureServiceConnection'
+    scriptType: 'bash'
+    scriptLocation: 'inlineScript'
+    inlineScript: |
+      git checkout -b main
+      afile=$(ls new_scripts)
+      mv new_scripts/$afile .
+      ./updateImage.sh $(System.TeamProject) $afile
+      mv $afile done_scripts/
+      #
+      # GitHub commands require granting "Bypass policies when pushing"
+      # and "Contribute" rights to the Project's Build Service User account
+      # under Project settings > Repositories > Security.
+      #
+      git config --global user.email "$(GitHubUser)"
+      git config --global user.name "$(System.TeamProject)"
+      git status
+      git add .
+      git commit -m "Processed script"
+      git push --set-upstream origin main

@@ -1,0 +1,26 @@
+trigger:
+  branches:
+    include:
+      - main
+  paths:
+    include:
+      - 'vdi.bicep'
+
+pool:
+  vmImage: ubuntu-latest
+
+steps:
+- task: AzureCLI@2
+  inputs:
+    azureSubscription: 'AzureServiceConnection'
+    scriptType: 'bash'
+    scriptLocation: 'inlineScript'
+    inlineScript: |
+      az deployment group create \
+      --name VDIdeployment-$(Build.BuildNumber) \
+      --template-file vdi.bicep \
+      --resource-group "$(System.TeamProject)-RG" \
+      --parameters \
+          projectId=$(System.TeamProject) \
+          updateAccess=false \
+      --query "{Name:name, ProvisioningState:properties.provisioningState}" -o table

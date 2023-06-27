@@ -1,0 +1,19 @@
+pr: none
+trigger: none
+
+schedules:
+- cron: "0 1 * * 0"
+  displayName: "Run deploy job Sundays, 1AM" 
+  always: true
+  branches:
+    include:
+      - main
+pool:
+  vmImage: windows-latest
+steps:
+- task: AzurePowerShell@5
+  inputs:
+    azureSubscription: 'AzureServiceConnection'
+    azurePowerShellVersion: LatestVersion
+    ScriptType: 'InlineScript'
+    Inline: ./deployNewImage.ps1 $(System.TeamProject)
